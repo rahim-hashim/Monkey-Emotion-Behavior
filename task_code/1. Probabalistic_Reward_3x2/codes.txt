@@ -1,0 +1,15 @@
+Code	Description
+100	Start Trial
+101 	Fixation On
+102 	Fixation Success
+103	CS On 
+104 	CS Off
+105 	Trace Start
+106 	Trace End
+107 	Not assigned
+108 	Not assigned
+109 	Not assigned
+110 	End Trial 
+111 	Reward Trigger 
+112 	Airpuff Trigger
+113	Manual Reward
