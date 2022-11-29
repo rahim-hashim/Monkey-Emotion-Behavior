@@ -17,10 +17,10 @@ TASK = 'Probabalistic_Airpuff_4x2'
 path_obj = Path(ROOT, EXPERIMENT, TASK)
 
 # Specifying date/monkey/task
-start_date = '2022-09-02'
-end_date = '2022-09-02'
+start_date = '2022-11-23'
+end_date = '2022-11-23'
 monkey_input = 'Aragorn'
-reprocess_data = False
+reprocess_data = True
 save_df = False
 
 # parse data
