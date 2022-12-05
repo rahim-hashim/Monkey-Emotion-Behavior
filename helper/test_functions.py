@@ -17,11 +17,11 @@ TASK = 'Probabalistic_Airpuff_4x2'
 path_obj = Path(ROOT, EXPERIMENT, TASK)
 
 # Specifying date/monkey/task
-start_date = '2022-11-23'
-end_date = '2022-11-23'
+start_date = '2022-11-29'
+end_date = '2022-11-29'
 monkey_input = 'Aragorn'
 reprocess_data = True
-save_df = False
+save_df = True
 
 # parse data
 h5_filenames = h5_helper.h5_pull(path_obj.current_dir) # pull all .h5 files from specified directory
@@ -55,15 +55,12 @@ for date in sorted(session_df['date'].unique()):
 																path_obj,
 																combine_dates=True)
 
-	from generate_videos import generate_videos
-	session_df_date = generate_videos(session_df_date,
-														 	 path_obj, 
-														 	 session_obj,
-														 	 delay_only=True)
-	import pickle
-	with open(path_obj.VIDEO_PATH + 'session_df_date.pkl', 'wb') as f:
-		pickle.dump(session_df_date, f)
-	break
+	# from generate_videos import generate_videos
+	# session_df_date = generate_videos(session_df_date,
+	# 													 	 path_obj, 
+	# 													 	 session_obj,
+	# 													 	 delay_only=True)
+
 	# Remove failure trials (i.e. break fixation)
 	session_df_correct = session_df_date[session_df_date['correct'] == 1]
 	session_df_correct = session_df_correct.iloc[:-1]
