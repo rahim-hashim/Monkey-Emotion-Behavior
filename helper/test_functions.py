@@ -2,12 +2,14 @@ import os
 import sys
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 # Custom modules
 import h5_helper
 import preprocess_helper
+from add_fields import add_fields
+# Custom classes
 from Path import Path
 from Session import Session
-from add_fields import add_fields
 pd.options.mode.chained_assignment = None  # default='warn'
 
 ROOT = '/Users/rahimhashim/Google Drive/My Drive/Columbia/Salzman/Monkey-Training/'
@@ -17,8 +19,8 @@ TASK = 'Probabalistic_Airpuff_4x2'
 path_obj = Path(ROOT, EXPERIMENT, TASK)
 
 # Specifying date/monkey/task
-start_date = '2022-11-29'
-end_date = '2022-11-29'
+start_date = '2023-01-23'
+end_date = '2023-01-23'
 monkey_input = 'Aragorn'
 reprocess_data = True
 save_df = True
@@ -34,7 +36,7 @@ ml_config, trial_record, session_df, error_dict, behavioral_code_dict\
 																			reprocess_data,
 																			save_df)
 
-for date in sorted(session_df['date'].unique()):
+for date in sorted(session_df['date'].unique(), reverse=False):
 	print('\nDate: {}'.format(date))
 
 	# from duration_hist import duration_hist
@@ -49,11 +51,17 @@ for date in sorted(session_df['date'].unique()):
 																						session_obj, 
 																						behavioral_code_dict)
 
+	plt.style.use('dark_background')
 	from image_diff import image_diff
-	FIGURE_SAVE_PATH = image_diff(session_df,
+	FIGURE_SAVE_PATH = image_diff(session_df_date, #change to session_df if combine_dates = True
 																session_obj,
 																path_obj,
-																combine_dates=True)
+																combine_dates=False)
+	session_obj.save_paths(path_obj.TARGET_PATH, 
+												path_obj.TRACKER_PATH, 
+												path_obj.VIDEO_PATH,
+												FIGURE_SAVE_PATH)
+
 
 	# from generate_videos import generate_videos
 	# session_df_date = generate_videos(session_df_date,
@@ -77,8 +85,8 @@ for date in sorted(session_df['date'].unique()):
 	from outcome_plots import outcome_plots
 	outcome_plots(session_df_correct, session_obj)
 
-	# from session_lick import session_lick
-	# session_lick(session_df_correct, session_obj)
+	from session_lick import session_lick
+	session_lick(session_df_correct, session_obj)
 
 	from trial_raster import trial_raster
 	trial_raster(session_df_correct, session_obj)
@@ -93,6 +101,15 @@ for date in sorted(session_df['date'].unique()):
 	from grant_plots import grant_plots
 	grant_plots(session_df_correct, session_obj)
 
+	from measure_hist import measure_hist
+	measure_hist(session_df_correct, session_obj)
+
+	from eyetracking_analysis import eyetracking_analysis
+	eyetracking_analysis(session_df_correct, session_obj, TRIAL_THRESHOLD=10)
+
+	from outcome_over_time import outcome_over_time
+	outcome_over_time(session_df_correct, session_obj)
+
 	from markdown_print import markdown_summary
 	markdown_summary(session_df_date, behavioral_code_dict, session_obj)
 
@@ -105,6 +122,6 @@ for date in sorted(session_df['date'].unique()):
 # from regress_behavior import regress_behavior
 # regress_behavior(session_df_correct, session_obj)
 
-from trial_movie import select_trial, write_times
-write_times(session_obj, session_df)
+# from trial_movie import select_trial, write_times
+# write_times(session_obj, session_df)
 # select_trial(session_df, session_obj)

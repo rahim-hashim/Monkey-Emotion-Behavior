@@ -39,16 +39,22 @@ def run_functions(df, session_obj, path_obj, behavioral_code_dict, error_dict, F
 
 	from raster_by_condition import raster_by_condition
 	from two_sample_test import t_test_moving_avg
-	for condition in sorted(df['condition'].unique()):
-		session_df_condition = df[df['condition'] == condition]
-		raster_by_condition(session_df_condition, behavioral_code_dict, error_dict, session_obj)
-		t_test_moving_avg(session_df_condition, session_obj, condition)
+	for block in sorted(df['block'].unique()):
+		session_df_condition = df[df['block'] == block]
+		raster_by_condition(session_df_condition, session_obj)
+		t_test_moving_avg(session_df_condition, session_obj, block)
 	
 	from grant_plots import grant_plots
 	grant_plots(df, session_obj)
 
 	from measure_hist import measure_hist
 	measure_hist(df, session_obj)
+
+	from eyetracking_analysis import eyetracking_analysis
+	eyetracking_analysis(df, session_obj, TRIAL_THRESHOLD=10)
+
+	from outcome_over_time import outcome_over_time
+	outcome_over_time(df, session_obj)
 
 	from markdown_print import markdown_summary
 	markdown_summary(df, behavioral_code_dict, session_obj)

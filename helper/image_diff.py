@@ -80,9 +80,9 @@ def image_diff(session_df, session_obj, path_obj, combine_dates):
   if combine_dates == True:
     all_dates = '_'.join(dates_formatted)
     FIGURE_SAVE_PATH = os.path.join(TRACKER_PATH, 'figures', all_dates)
+    print('Save folder for combined dates: {}'.format(FIGURE_SAVE_PATH))
     if os.path.exists(FIGURE_SAVE_PATH) == False:
       os.mkdir(FIGURE_SAVE_PATH)
   else:
     FIGURE_SAVE_PATH = DATE_SAVE_PATH
-    print('Save folder for combined dates: {}'.format(FIGURE_SAVE_PATH))
   return FIGURE_SAVE_PATH

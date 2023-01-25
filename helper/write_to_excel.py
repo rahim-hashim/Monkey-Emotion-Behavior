@@ -63,7 +63,6 @@ def clean_rows(ws, headers):
 			sessions.append('_'.join([date, task, str(session)]))
 		else:
 			empty_rows.append(r_index+2) # index is 1-based, so not including header
-	print(empty_rows)
 	for r_index in reversed(empty_rows):
 		ws.delete_rows(r_index, amount=1)
 	return dates, sessions
@@ -98,6 +97,7 @@ def outcome_params(session_obj):
 	return reward_list, airpuff_list
 
 def write_to_excel(df, session_obj, path_obj, verbose=False):
+	print('Writing to excel...')
 	EXCEL_PATH = path_obj.EXCEL_PATH
 	excel_path_file = os.path.basename(os.path.normpath(EXCEL_PATH))
 	wb = load_workbook(filename = EXCEL_PATH)
@@ -112,7 +112,7 @@ def write_to_excel(df, session_obj, path_obj, verbose=False):
 	date_str, weekday_str = calculate_date(date)
 	session_task_num = '_'.join([date_str, session_obj.task, str(session_num)])
 	if session_task_num not in sessions:
-		print(' Writing {} to {}'.format(date, excel_path_file))
+		print('  Writing {} to {}'.format(date, excel_path_file))
 		start_datetime = df['trial_datetime_start'].iloc[0]
 		end_datetime = df['trial_datetime_end'].iloc[-1]
 		session_time = session_obj.session_length

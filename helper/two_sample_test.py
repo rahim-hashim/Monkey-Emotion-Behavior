@@ -74,8 +74,8 @@ def two_sample_test(data_type, data_raster, condition, session_obj, direction='f
 	f, axarr = plt.subplots(2,3, figsize=(12,4), sharex=True, sharey=True)
 
 	FIGURE_SAVE_PATH = session_obj.figure_path
-	COLORS = session_obj.valence_colors
-	LABELS = list(session_obj.valence_labels.values())
+	COLORS = list(session_obj.valence_colors.values())
+	LABELS = list(session_obj.valence_labels.values())[:4]
 	num_valences = len(LABELS)
 	window_width = 5
 
@@ -98,6 +98,7 @@ def two_sample_test(data_type, data_raster, condition, session_obj, direction='f
 		valence_1, valence_2 = LABELS[valence[0]], LABELS[valence[1]]
 		a = prob_combinations[f_index][0]
 		d = prob_combinations[f_index][1]
+		t_all, p_all = ttest_ind(a, d, equal_var=False)
 		ma_vec_a = moving_avg(a, window_width)
 		mv_vec_a = moving_var(a, window_width)
 		ma_vec_d = moving_avg(d, window_width)
@@ -163,11 +164,10 @@ def two_sample_test(data_type, data_raster, condition, session_obj, direction='f
 		if verbose:
 			print('  {}'.format(window),
 						valence_1, valence_2, 
-						round(np.mean(a[:window]), 3),
-						round(np.mean(d[:window]), 3),
-						p_str)
+						round(np.mean(a), 3),
+						round(np.mean(d), 3),
+						format(p_all, '.3g'))
 
-	img_save_path = os.path.join(FIGURE_SAVE_PATH, 't_test_{}_{}.png'.format(data_type, condition))
 	f.supylabel('Moving Avg ({} Trials)'.format(window_width))
 	if direction=='backwards':
 		if condition == 1:
@@ -181,7 +181,8 @@ def two_sample_test(data_type, data_raster, condition, session_obj, direction='f
 	f.suptitle(title_full.title() + ' (Condition {})'.format(condition))
 
 	f.tight_layout()
-	plt.savefig(img_save_path, dpi=150, bbox_inches='tight', pad_inches = 0.1)
+	img_save_path = os.path.join(FIGURE_SAVE_PATH, 't_test_{}_{}.png'.format(data_type, condition))
+	f.savefig(img_save_path, dpi=150, bbox_inches='tight', pad_inches = 0.1)
 	plt.close('all')
 
 def t_test_moving_avg(df, session_obj, condition):
@@ -189,5 +190,4 @@ def t_test_moving_avg(df, session_obj, condition):
 	lick_data_probability, blink_data_probability, lick_data_duration, blink_data_duration = generate_data_dict(df, session_obj)
 	set_plot_params(FONT=10, AXES_TITLE=11, AXES_LABEL=10, TICK_LABEL=10, LEGEND=8, TITLE=14)
 	two_sample_test('lick-duration', lick_data_duration, condition, session_obj)
-	two_sample_test('blink-prob', blink_data_probability, condition, session_obj)
 	two_sample_test('blink-duration', blink_data_duration, condition, session_obj)

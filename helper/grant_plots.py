@@ -79,7 +79,14 @@ def grant_plots(session_df, session_obj):
 										TICK_LABEL=12, 
 										LEGEND=10, 
 										TITLE=20)
+		params = {"ytick.color" : "w",
+          		"xtick.color" : "w",
+          		"axes.labelcolor" : "w",
+          		"axes.edgecolor" : "w",
+							"axes.titlecolor" : "w"}
+		# plt.rcParams.update(params)
 		fig = plt.figure(figsize=(10, 6))
+
 
 		FIGURE_SAVE_PATH = session_obj.figure_path
 		if 'lick' in plot_param:
@@ -95,15 +102,15 @@ def grant_plots(session_df, session_obj):
 
 		# Collapsed on conditions
 		ax1 = fig.add_subplot(fig_dimensions[plot_index][0])
-		ax1.set_title('Collapsed on Conditions')
+		ax1.set_title('Collapsed Across Session', fontsize=18)
 
 		# Condition 1
 		ax2 = fig.add_subplot(fig_dimensions[plot_index][1])
-		ax2.set_title('Condition 1', fontsize=16)
+		ax2.set_title('Pre-Switch', fontsize=16)
 
 		# Condition 2
 		ax3 = fig.add_subplot(fig_dimensions[plot_index][2])
-		ax3.set_title('Condition 2', fontsize=16)
+		ax3.set_title('Post-Switch', fontsize=16)
 		axarr = [ax1, ax2, ax3]
 		TRIAL_THRESHOLD = 10
 
@@ -133,8 +140,7 @@ def grant_plots(session_df, session_obj):
 			axarr[ax_index].bar(range(len(measure_mean_list)), 
 													measure_mean_list,
 													# yerr=measure_std_list,
-													ec='black',
-													color=COLORS[plot_index], linewidth=3)
+													color=COLORS[plot_index], linewidth=2)
 			axarr[ax_index].set_xticks(range(len(measure_mean_list)))
 			outcome_mag_labels = ['none', 'small', 'large']
 			axarr[ax_index].set_xticklabels(outcome_mag_labels)
@@ -144,12 +150,6 @@ def grant_plots(session_df, session_obj):
 		fig.tight_layout()
 		# set facecolor to black:
 		fig.set_facecolor("k")
-		params = {"ytick.color" : "w",
-          		"xtick.color" : "w",
-          		"axes.labelcolor" : "w",
-          		"axes.edgecolor" : "w",
-							"axes.titlecolor" : "w"}
-		plt.rcParams.update(params)
 		grant_title = 'grant_{}.png'.format(outcomes[plot_index].lower())
 		img_save_path = os.path.join(FIGURE_SAVE_PATH, grant_title)
 		print('  {} saved.'.format(grant_title))

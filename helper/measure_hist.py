@@ -6,7 +6,7 @@ from decimal import Decimal
 from matplotlib import pyplot as plt
 from sklearn.neighbors import KernelDensity
 from itertools import combinations, permutations
-
+# Custom modules
 from two_sample_test import generate_data_dict
 
 def ks_test(df, session_obj):
@@ -68,14 +68,14 @@ def measure_hist(df, session_obj):
 		lick_data = np.array(df_valence['lick_duration'])/5 # normalize data
 		sns.kdeplot(ax=ax1,
 								data=lick_data,  
-								color=COLORS[v_index], 
+								color=COLORS[valence], 
 								label=LABELS[valence],
 								fill=True,
 								linewidth=2,
 								cut=0)
 		sns.ecdfplot(ax=ax3,
 								 data=lick_data,
-								 color=COLORS[v_index],
+								 color=COLORS[valence],
 								 label=LABELS[valence],
 								 linewidth=2)
 		# ax5.hist(lick_data, histtype='barstacked', alpha=0.5, bins=20, 
@@ -85,7 +85,7 @@ def measure_hist(df, session_obj):
 		sns.kdeplot(ax=ax2,
 								data=df_valence,
 								x='blink_duration_offscreen',  
-								color=COLORS[v_index], 
+								color=COLORS[valence], 
 								label=LABELS[valence],
 								fill=True,
 								linewidth=2,
@@ -93,11 +93,11 @@ def measure_hist(df, session_obj):
 		sns.ecdfplot(ax=ax4,
 								 data=df_valence,
 								 x='blink_duration_offscreen',
-								 color=COLORS[v_index],
+								 color=COLORS[valence],
 								 label=LABELS[valence],
 								 linewidth=2)
 		# ax6.hist(blink_data, histtype='bar', alpha=0.5, bins=20, 
-		# 				 color=COLORS[v_index], label=LABELS[valence])
+		# 				 color=COLORS[valence], label=LABELS[valence])
 	ax1.set_xticks(x)
 	ax1.set_xticklabels(x_label)
 	ax1.set_xlabel('Percent of Trial Licking', fontsize=16)
@@ -105,14 +105,6 @@ def measure_hist(df, session_obj):
 	ax2.set_xlabel('Percent of Trial Blinking', fontsize=16)
 	ax1.legend(loc='upper left')
 	ax2.legend(loc='upper right')
-	# set facecolor to black:
-	f1.set_facecolor("k")
-	params = {"ytick.color" : "w",
-						"xtick.color" : "w",
-						"axes.labelcolor" : "w",
-						"axes.edgecolor" : "w",
-						"axes.titlecolor" : "w"}
-	plt.rcParams.update(params)
 	img_save_path = os.path.join(FIGURE_SAVE_PATH, 'lick_blink_hist')
 	f1.savefig(img_save_path, dpi=150)
 	print('  lick_blink_hist.png saved.')
@@ -124,14 +116,6 @@ def measure_hist(df, session_obj):
 	ax4.set_xlabel('Percent of Trial Blinking', fontsize=16)
 	ax3.legend(loc='upper left')
 	ax4.legend(loc='lower right')
-	# set facecolor to black:
-	f2.set_facecolor("k")
-	params = {"ytick.color" : "w",
-						"xtick.color" : "w",
-						"axes.labelcolor" : "w",
-						"axes.edgecolor" : "w",
-						"axes.titlecolor" : "w"}
-	plt.rcParams.update(params)
 	img_save_path = os.path.join(FIGURE_SAVE_PATH, 'lick_blink_cdf')
 	f2.savefig(img_save_path, dpi=150)
 	print('  lick_blink_cdf.png saved.')

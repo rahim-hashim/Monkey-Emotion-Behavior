@@ -29,7 +29,7 @@ def lick_blink_linear(df, session_obj):
 	text = 'R-Value: {} | P-Value: {:.3g}'.format(round(r_value, 3), p_value)
 	anchored_text = AnchoredText(text,
 															 loc='lower center',
-															 frameon=True)
+															 frameon=False)
 	ax.add_artist(anchored_text)
 	# plt.gcf().text(1, 1.1, text, fontsize=14) 
 
@@ -42,19 +42,18 @@ def lick_blink_linear(df, session_obj):
 		x = np.array(df_valence['lick_duration'].tolist())/5
 		y = df_valence['blink_duration_offscreen'].tolist()
 
-		color = COLORS[df_index]
+		color = COLORS[valence]
 		sns.regplot(x=x, y=y, color=color, label=valence, ax=ax, ci=None)
 	
 	plt.ylim([-0.175, 1.1])
 	yticks = np.round(np.arange(0, 1.2, 0.2), 2)
 	plt.yticks(yticks, yticks)
-	plt.legend(loc='upper right', labels=['all'], fontsize=10)
+	plt.legend(loc='upper right', labels=['all'], fontsize=10, frameon=False)
 	plt.xlabel('Norm Lick Duration')
 	plt.ylabel('Norm Blink Duration')
 	plt.title('Lick vs Blink Duration')
 	fig_name = 'lick_vs_blink'
 	img_save_path = os.path.join(FIGURE_SAVE_PATH, fig_name)
-	f.savefig(img_save_path, dpi=150, bbox_inches='tight')
+	f.savefig(img_save_path, dpi=150, bbox_inches='tight', transparent=True)
 	print('  {}.png saved.'.format(fig_name))
 	plt.close('all')
-	plt.show()

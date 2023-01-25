@@ -1,6 +1,7 @@
+import os
 import sys
 import cv2
-import os
+import pickle
 import numpy as np
 from tqdm.auto import tqdm
 from datetime import datetime, timedelta
@@ -59,6 +60,16 @@ def str_to_datetime(timestamp_string):
 	timestamp_datetime = datetime.strptime(timestamp_string, "%Y-%m-%d %H:%M:%S.%f")
 	return timestamp_datetime
 
+def write_log(log_file, trial_index, content):
+	trial_str = str(trial_index)
+	if content == 'error':
+		error_str = ','.join([trial_str,'','', ''])
+		log_file.write(error_str + '\n')
+	else:
+		content_list = [trial_str] + list(map(str, content))
+		content_str = ','.join(content_list)
+		log_file.write(content_str + '\n')
+
 def img_to_vid(trial, 
 							 delay_only, 											# if True, only delay period is included in video
 							 trial_start_timestamps, 					# list of trial start timestamps
@@ -68,7 +79,8 @@ def img_to_vid(trial,
 							 cam_name, images_cam_list, 			# images folders
 							 timestamp_images_datetime, 			# image timestamps
 							 timestamp_image_file_list, 			# image timestamp files
-							 specified_folder_path_list):			# image timestamp lists
+							 specified_folder_path_list,			# image timestamp lists
+							 log_file):								# log file
 	"""
 	Creates videos for each trial
 	"""
@@ -81,35 +93,37 @@ def img_to_vid(trial,
 
 	# Segments trial for only delay period
 	print('Trial Number: {}'.format(trial_index+1))
-	
+
 	if delay_only:
 		if trial['correct'] == 1:
 			delay_start = trial['Trace Start']
 			delay_end = trial['Trace End']
-			video_start_datetime = trial_start_datetime + timedelta(milliseconds=delay_start)
-			video_end_datetime = trial_start_datetime + timedelta(milliseconds=delay_end)
+			trial_start_segment_datetime = trial_start_datetime + timedelta(milliseconds=delay_start)
+			trial_end_segment_datetime = trial_start_datetime + timedelta(milliseconds=delay_end)
 		else:
 			print('  Subject errored, skipping trial.')
 			video_name = np.nan
+			log_file = write_log(log_file, trial_index, 'error')
 			return video_name 
 	else:
-		video_start_datetime = trial_start_datetime
-		video_end_datetime = trial_start_datetime
-	print('   Start: {}'.format(video_start_datetime))
-	print('   End:   {}'.format(video_end_datetime))
+		trial_start_segment_datetime = trial_start_datetime
+		trial_end_segment_datetime = trial_start_datetime
+	print('   Start: {}'.format(trial_start_segment_datetime))
+	print('   End:   {}'.format(trial_end_segment_datetime))
 
 	# Frames timestamp data
 	min_dist_timestamp_list_start = []
 	min_dist_timestamp_list_end = []
 
-	min_dist_timestamp_start = closest_timestamp(video_start_datetime, 'trial start', timestamp_images_datetime)
+	# find the frame with the closest timestamp to trial start (or delay start for each trial)
+	min_dist_timestamp_start = closest_timestamp(trial_start_segment_datetime, 'trial start', timestamp_images_datetime)
 	min_dist_timestamp_list_start.append(min_dist_timestamp_start)
-	min_dist_timestamp_end = closest_timestamp(video_end_datetime, 'trial end', timestamp_images_datetime)
+	min_dist_timestamp_end = closest_timestamp(trial_end_segment_datetime, 'trial end', timestamp_images_datetime)
 	min_dist_timestamp_list_end.append(min_dist_timestamp_end)
 
 	# If multiple session files (i.e. 20220902_Aragorn_behave.h5, 20220902_Aragorn_behave (1).h5...)
 	# then select the session that has the closest timestamps to the specified trial
-	min_dist_session = closest_timestamp(video_start_datetime, '', min_dist_timestamp_list_start)
+	min_dist_session = closest_timestamp(trial_start_segment_datetime, '', min_dist_timestamp_list_start)
 	session_index = 0
 	if min_dist_session == min_dist_timestamp_list_start[0]:
 		session_closest_timestamp = specified_folder_path_list[0]
@@ -134,18 +148,22 @@ def img_to_vid(trial,
 	if frame_index_start == 0 or frame_index_end == 0:
 		print('Trial start or Trial end frame index not found')
 		video_name = np.nan
+		write_log(log_file, trial_index, 'error')
 		return video_name
 	if frame_index_start >= frame_index_end:
 		print('Trial start frame index is greater than or equal to Trial end frame index')
 		video_name = np.nan
+		write_log(log_file, trial_index, 'error')
 		return video_name
 
+	timestamp_diff = frame_timestamp_start - trial_start_segment_datetime
+	log_content = [trial_start_segment_datetime, frame_timestamp_start , timestamp_diff]
+	write_log(log_file, trial_index, log_content)
 	frame_count = frame_index_end-frame_index_start
 	length_trial = (frame_timestamp_end-frame_timestamp_start).total_seconds()
 	frame_rate = round(frame_count/length_trial, 3)
 
 	video_name = DATE + '_' + MONKEY + '_trial_' + str(trial_index) + '_' + cam_name + '.mp4'
-	return video_name
 	
 	# Parse specified timestamps and recreate video
 	frame = cv2.imread(os.path.join(session_closest_timestamp, images_cam[0]))
@@ -185,13 +203,13 @@ def img_to_vid(trial,
 	video.release()
 	return video_name
 
-def generate_videos(df, path_obj, session_obj, delay_only):
+def generate_videos(df, path_obj, delay_only, num_cameras):
 
 	TRIAL_TIMESTAMP_FILE = path_obj.VIDEO_PATH
-	IMAGES_FOLDER = '/Volumes/LaCie/Video'
+	IMAGES_FOLDER = path_obj.VIDEO_PATH
 	DATE = df['date'].iloc[0]
 	MONKEY = df['subject'].iloc[0]
-	VIDEO_SAVE_PATH = '/Users/rahimhashim/Desktop/' + MONKEY + '_20' + DATE
+	VIDEO_SAVE_PATH = os.path.join(path_obj.VIDEO_PATH, MONKEY + '_20' + DATE + '_videos')
 	# Make save directory if it doesn't exist
 	if os.path.exists(VIDEO_SAVE_PATH) == False:
 			print('Making save directory: {}'.format(VIDEO_SAVE_PATH))
@@ -221,13 +239,14 @@ def generate_videos(df, path_obj, session_obj, delay_only):
 
 	# Images data
 	image_folder = []
+	print('\nLooking for IMAGES files...')
+	print('Directory for images files: {}'.format(IMAGES_FOLDER))
 	for folder in os.listdir(IMAGES_FOLDER):
-		if DATE in folder and MONKEY in folder:
+		if DATE in folder and MONKEY in folder and os.path.isdir(os.path.join(IMAGES_FOLDER, folder)):
 			image_folder.append(folder)
 	if image_folder == []:
-		sys.exit()
+		sys.exit('Images folder not found')
 
-	num_cameras = 2
 	for cam_num in range(num_cameras):
 		cam_name = 'cam{}'.format(cam_num)
 		specified_folder_path_list = []
@@ -254,6 +273,11 @@ def generate_videos(df, path_obj, session_obj, delay_only):
 			except:
 				pass
 
+		# Log file
+		log_file = open (os.path.join(VIDEO_SAVE_PATH, 'log_{}.txt'.format(cam_name)), 'w')
+		log_file.write('# Logs for video files' + '\n')
+		log_file.write('## trial_index, trial_start, frame_start, start_diff' + '\n')
+
 		tqdm.pandas(desc='Trial Number') # tqdm pandas progress bar
 		print('Starting video generation...')
 		df[cam_name] = df.progress_apply(img_to_vid,
@@ -268,11 +292,13 @@ def generate_videos(df, path_obj, session_obj, delay_only):
 						images_cam_list=images_cam_list,
 						timestamp_images_datetime=timestamp_images_datetime,
 						timestamp_image_file_list=timestamp_image_file_list,
-						specified_folder_path_list=specified_folder_path_list, 
+						specified_folder_path_list=specified_folder_path_list,
+						log_file=log_file, 
 						axis=1)
 		print('{} videos complete.'.format(cam_name))
+		log_file.close()
 
-	import pickle
+	# dump pickle file
 	with open (os.path.join(VIDEO_SAVE_PATH, 'session_df.pkl'), 'wb') as f:
 		pickle.dump(df, f)
 

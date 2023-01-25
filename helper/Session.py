@@ -22,7 +22,8 @@ class Session:
 		self.window_blink = 1000
 		self.colors = []
 		self.stim_labels = []
-		self.valence_colors = ['#28398D', '#91BFBC', '#ED8C8C', '#D61313'] # dark blue, blue, red, dark red
+		self.valence_colors = {1.0: '#28398D', 0.5: '#91BFBC', # dark blue, blue,
+													-0.5: '#ED8C8C', -1.0: '#D61313'} # red, dark red
 		self.valence_labels = defaultdict(str)
 		self.session_num = 0						# can be multiple sessions per monkey per day
 		self.session_length = 0					# length of each session in seconds
@@ -97,7 +98,7 @@ class Session:
 				eye_x_max = max(eye_x)
 			if max(eye_y) > eye_y_max:	
 				eye_y_max = max(eye_y)
-		print('  Max Values (X,Y): ({},{})'.format(round(eye_x_min,3),
+		print('  Min Values (X,Y): ({},{})'.format(round(eye_x_min,3),
 																							 round(eye_y_min,3)))
 		print('  Max Values (X,Y): ({},{})'.format(round(eye_x_max,3),
 																							 round(eye_y_max,3)))

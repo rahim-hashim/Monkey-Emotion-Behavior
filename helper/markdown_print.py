@@ -154,6 +154,16 @@ def markdown_calc(df, f, behavioral_code_dict, session_obj, verbose):
 	md_list.append(session_str)
 	f.write(session_str)
 
+	# Session Lick/Blink Duration
+	session_lick_blink_header = '#### Lick/Blink Duration\n'
+	md_list.append(session_lick_blink_header)
+	f.write(session_lick_blink_header)
+
+	session_lick_blink_img_path = os.path.join('..', 'figures', date_formatted, 'moving_avg_lick_blink.png')
+	session_lick_blink_img_path_str = '<img src="{}">\n'.format(session_lick_blink_img_path)
+	md_list.append(session_lick_blink_img_path_str)
+	f.write(session_lick_blink_img_path_str)
+
 	# Session Average Lick Probability
 	lick_header = '#### Avg Lick Probability\n'
 	md_list.append(lick_header)
@@ -263,6 +273,18 @@ def markdown_calc(df, f, behavioral_code_dict, session_obj, verbose):
 	md_list.append(lick_blink_fig_str)
 	f.write(lick_blink_fig_str)
 
+	line_break = '\n***\n'
+	f.write(line_break)
+
+	# Eye Position Analysis
+	eye_heatmap_header = '### Eye Position Heatmap\n'
+	md_list.append(eye_heatmap_header)
+	f.write(eye_heatmap_header)
+	for valence in sorted(df['valence'].unique(), reverse=True):
+		eye_heatmap_path = os.path.join('..', 'figures', date_formatted, 'eye_heatmap_{}.png'.format(valence))
+		eye_heatmap_fig_str = '<img src="{}">\n'.format(eye_heatmap_path)
+		md_list.append(eye_heatmap_fig_str)
+		f.write(eye_heatmap_fig_str)
 	line_break = '\n***\n'
 	f.write(line_break)
 

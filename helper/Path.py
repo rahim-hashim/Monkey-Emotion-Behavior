@@ -30,4 +30,4 @@ class Path:
 		self.EXCEL_PATH = os.path.join(self.TRACKER_PATH, 'Emotion_Tracker.xlsx')
 
 		# Video Path
-		self.VIDEO_PATH = os.path.join(ROOT, 'Monkey-Emotion', 'analysis_scripts', 'Video')
+		self.VIDEO_PATH = os.path.join(ROOT, 'Monkey-Emotion-Behavior', 'Video')

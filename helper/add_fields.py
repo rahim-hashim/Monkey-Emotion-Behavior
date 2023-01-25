@@ -172,6 +172,7 @@ def trial_in_block(df):
 def fractal_in_block(df):
 	"""
 	Counts the number of times the fractal was presented in a block
+	and only increments the count if the outcome was received
 
 		Args:
 			df: session_df DataFrame
@@ -183,12 +184,14 @@ def fractal_in_block(df):
 	fractals = sorted(df['stimuli_name'].unique())
 	zero_counter = np.zeros(len(fractals), dtype=int)
 	fractal_count = []
-	for trial in range(len(df)):
-		if df['trial_in_block'].iloc[trial] == 0:
+	for trial_index in range(len(df)):
+		if df['trial_in_block'].iloc[trial_index] == 0:
 			zero_counter = np.zeros(len(fractals), dtype=int)
-		fractal = df['stimuli_name'].iloc[trial]
+		fractal = df['stimuli_name'].iloc[trial_index]
 		fractal_index = fractals.index(fractal)
-		zero_counter[fractal_index] += 1
+		# only increment for correct (i.e. outcome received) trials
+		if df['correct'].iloc[trial_index] == 1:
+			zero_counter[fractal_index] += 1
 		fractal_count.append(zero_counter[fractal_index])
 	return fractal_count
 
@@ -205,62 +208,47 @@ def outcome_back_counter(df):
 	df['airpuff_5_back'] = df['airpuff_4_back'].tolist() + df.airpuff.shift(5)
 	return df
 
-def lick_count_window(trial, trace_window):
+def outcome_count_window(trial, session_obj):
 	"""
-	Generates an array for each trial of rasterized lick data
+	Generates new columns counting lick, blink, and pupil data for each trial
 			
 		Args:
 			trial: row in session_df DataFrame
+			session_obj: Session object
 			
 		Returns:
-			lick_data_window: rasterized lick data for <session_df.window> ms window before
-				'Trace End' i.e. Delay timepoint
+			trial: row in session_df DataFrame with new columns
+				- lick_count_window: rasterized lick data for lick window
+				- blink_count_window: rasterized lick data for blink window
+				- pupil_data_window: raw pupil data for blink window
+				- pupil_raster_window: rasterized pupil data for blink window
+				- pupil_zero_count: binary 1 if pupil is 0 for any timepoint in blink window
 	"""
+	TRACE_WINDOW_LICK = session_obj.window_lick
+	TRACE_WINDOW_BLINK = session_obj.window_blink
 	lick_raster = trial['lick_raster']
+	eye_raster = trial['blink_raster']
+	pupil_data = trial['eye_pupil']
 	trace_off_time = trial['Trace End']
 	try:
-		lick_data_window = lick_raster[trace_off_time-trace_window:trace_off_time]
+		lick_data_window = lick_raster[trace_off_time-TRACE_WINDOW_LICK:trace_off_time]
+		blink_data_window = eye_raster[trace_off_time-TRACE_WINDOW_BLINK:trace_off_time]
+		pupil_data_window = pupil_data[trace_off_time-TRACE_WINDOW_BLINK:trace_off_time]
+		blink_raster = [1 if x == 0 else 0 for x in pupil_data_window]
+		blink_count = 1 if 1 in blink_raster else 0	
 	except: # error before 'Trace End'
 		lick_data_window = np.nan
-	return lick_data_window
-
-def blink_count_window(trial, trace_window):
-	"""
-	Generates an array for each trial of rasterized blink data
-			
-		Args:
-			trial: row in session_df DataFrame
-			
-		Returns:
-			blink_data_window: rasterized blink data for <session_obj.window>ms window before
-				'Trace End' i.e. Delay timepoint
-	"""
-	eye_raster = trial['blink_raster']
-	trace_off_time = trial['Trace End']
-	try:
-		blink_data_window = eye_raster[trace_off_time-trace_window:trace_off_time]
-	except: # error before 'Trace End'
-		blink_data_window = np.nan		
-	return blink_data_window
-	
-def pupil_window(trial):
-	"""
-	Generates an array for each trial of pupil data
-			
-		Args:
-			trial: row in session_df DataFrame
-			
-		Returns:
-			pupil_data_window: pupil data for <session_obj.window>ms window before
-	"""
-	pupil_data = trial['eye_pupil']
-	cs_off_time = trial['CS Off']
-	trace_off_time = trial['Trace End']
-	try:
-		pupil_data_window = pupil_data[cs_off_time:trace_off_time]
-	except: # error before 'Trace End'
-		pupil_data_window = np.nan		
-	return pupil_data_window
+		blink_data_window = np.nan	
+		pupil_data_window = np.nan	
+		blink_raster = np.nan	
+		blink_count = np.nan
+	trial['lick_count_window'] = lick_data_window
+	trial['blink_count_window'] = blink_data_window
+	trial['pupil_data_window'] = pupil_data_window
+	trial['pupil_raster_window'] = blink_raster
+	trial['pupil_raster_window_avg'] = np.mean(blink_raster)
+	trial['pupil_binary_zero'] = blink_count
+	return trial
 
 def pupil_pre_CS(trial):
 	"""
@@ -417,9 +405,9 @@ def add_fields(df, session_obj, behavioral_code_dict):
 	df['trial_in_block'] = trial_in_block(df)
 	df['fractal_count_in_block'] = fractal_in_block(df)
 	df = outcome_back_counter(df)
-	df['lick_count_window'] = df.apply(lick_count_window, trace_window=TRACE_WINDOW_LICK, axis=1)
-	df['blink_count_window'] = df.apply(blink_count_window, trace_window=TRACE_WINDOW_BLINK, axis=1)
-	df['pupil_window'] = df.apply(pupil_window, axis=1)
+	df = df.apply(outcome_count_window,
+								session_obj=session_obj, 
+								axis=1)
 	df['pupil_pre_CS'] = df.apply(pupil_pre_CS, axis=1)
 	df['lick_in_window'] = df.apply(lick_in_window, axis=1)
 	df['blink_in_window'] = df.apply(blink_in_window, axis=1)

@@ -16,6 +16,9 @@ def outcome_frequency(session_df_correct, session_obj):
 	y2 = []
 	num_fractals = len(session_df_correct['stimuli_name'].unique())
 	num_conditions = len(session_df_correct['condition'].unique())
+	trial_threshold = True if (len(session_df_correct[session_df_correct['condition'] == 1]) > 10) \
+												and (len(session_df_correct[session_df_correct['condition'] == 2]) > 10) \
+										else False
 	for c_index, condition in enumerate(sorted(session_df_correct['condition'].unique())):
 		session_df_condition = session_df_correct[session_df_correct['condition'] == condition]
 		for f_index, fractal in enumerate(sorted(session_df_condition['stimuli_name'].unique())):
@@ -31,7 +34,7 @@ def outcome_frequency(session_df_correct, session_obj):
 	x_range = np.arange(len(x))
 	bar_colors = COLORS
 	bar_labels = LABELS
-	if num_conditions > 1:
+	if num_conditions > 1 and trial_threshold:
 		bar_labels += [''] + LABELS
 		bar_colors += ['b'] + COLORS
 		axarr[0][0].axvline(num_fractals, color='black')

@@ -30,8 +30,8 @@ def session_lick(df: pd.DataFrame, session_obj: Session):
   LICK_WINDOW_THRESHOLD = session_obj.window_lick
   BLINK_WINDOW_THRESHOLD = session_obj.window_blink
 
-  f1, axarr1 = plt.subplots(len(LABELS),1, sharex=True, sharey=True)
-  f2, axarr2 = plt.subplots(len(LABELS),1, sharex=True, sharey=True)
+  f1, axarr1 = plt.subplots(len(LABELS),1, sharex=True, sharey=True, figsize=(10,5))
+  f2, axarr2 = plt.subplots(len(LABELS),1, sharex=True, sharey=True, figsize=(10,5))
 
   for df_index, fractal in enumerate(sorted(df['stimuli_name'].unique())):
 
@@ -53,7 +53,7 @@ def session_lick(df: pd.DataFrame, session_obj: Session):
     axarr1[df_index].plot(np.array(x1), y1, linewidth=3, label = LABELS[df_index], color=COLORS[df_index])
     axarr1[df_index].scatter(np.array(x1), lick, s=4, color=COLORS[df_index])
 
-    axarr1[df_index].set_title('Fractal {}'.format(LABELS[df_index], fontsize=8))
+    axarr1[df_index].set_title('Fractal {}'.format(LABELS[df_index], fontsize=12))
 
     for change_trial in block_change[1:]:
       axarr1[df_index].axvline(change_trial, c='grey', alpha=0.5)

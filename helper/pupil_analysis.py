@@ -13,16 +13,16 @@ def pupil_valence_no_blink(session_df_correct, session_obj):
 		fig (plt.figure): figure of pupil size by valence on trials without blinks only
 	"""
 	import seaborn as sns
-	session_df_correct['pupil_mean'] = session_df_correct['pupil_window'].apply(lambda x: np.mean(x))
+	session_df_correct['pupil_mean'] = session_df_correct['pupil_data_window'].apply(lambda x: np.mean(x))
 	df = session_df_correct[(session_df_correct['fractal_count_in_block'] > 10) & 
 													(session_df_correct['blink_in_window'] == 0)]
 	# dates_selected = ['220913']
 	# df = df.loc[(df['date'].isin(dates_selected))]
 	fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5), sharex=True, sharey=False)
 	ax = sns.boxplot(ax=ax1, x='valence', y='pupil_mean', data=df, 
-							palette=reversed(session_obj.valence_colors))
+							palette=reversed(list(session_obj.valence_colors.values())))
 	ax = sns.barplot(ax=ax2, x='valence', y='pupil_mean', data=df, 
-							palette=reversed(session_obj.valence_colors), ec='black', lw=1)
+							palette=reversed(list(session_obj.valence_colors.values())))
 	ax1.set_xlabel('Outcome', fontsize=14)
 	ax1.set_ylabel('Pupil Diameter (mm)', fontsize=14)
 	ax1.set_title('Pupil Diameter by Outcome', fontsize=20)
@@ -54,7 +54,7 @@ def preblink_window(row):
 	if blink_index and blink_index > 300:
 		bin = int(blink_index)
 		pupil_pre_CS = np.mean(row['pupil_pre_CS_mean'])
-		pupil_mean = np.mean(row['pupil_window'][bin-200:bin-50])
+		pupil_mean = np.mean(row['pupil_data_window'][bin-200:bin-50])
 		# pupil_mean = pupil_window - pupil_pre_CS
 	else:
 		pupil_mean = np.nan
@@ -79,7 +79,7 @@ def pupil_preblink(session_df_correct, session_obj):
 													(session_df_correct['pupil_preblink'] != np.nan)]
 	print(df.groupby(['valence'])[['pupil_preblink']].count())
 	ax = sns.barplot(x='valence', y='pupil_preblink', data=df, 
-							palette=reversed(session_obj.valence_colors), ec='black')
+							palette=reversed(list(session_obj.valence_colors.values())))
 	ax.set_xlabel('Outcome', fontsize=14)
 	ax.set_ylabel('Pupil Diameter (mm)', fontsize=14)
 	ax.set_title('Pupil Diameter by Outcome', fontsize=20)

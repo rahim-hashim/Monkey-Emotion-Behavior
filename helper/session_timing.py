@@ -34,7 +34,7 @@ def plot_latency(df: pd.DataFrame, session_obj: Session):
   latency = df['Fixation Success'].tolist()
   valence_1_back = df.shift(1)['valence']
   sns.barplot(x=valence_1_back, y=latency, ax=ax, estimator=np.mean,
-              palette=reversed(session_obj.valence_colors), 
+              palette=reversed(list(session_obj.valence_colors.values())), 
               ec='black', 
               lw=1)
 
